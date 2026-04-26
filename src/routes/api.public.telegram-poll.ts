@@ -19,9 +19,9 @@ type Update = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: "🕒 PENDING",
-  sold: "✅ SOLD",
-  canceled: "❌ CANCELED",
+  pending: "PENDING",
+  sold: "SOLD",
+  canceled: "CANCELED",
 };
 
 function buildMarkup(status: string) {
@@ -29,28 +29,28 @@ function buildMarkup(status: string) {
     return {
       inline_keyboard: [
         [
-          { text: "✅ Mark as Sold", callback_data: "status:sold" },
-          { text: "❌ Mark as Canceled", callback_data: "status:canceled" },
+          { text: "Mark as Sold", callback_data: "status:sold" },
+          { text: "Mark as Canceled", callback_data: "status:canceled" },
         ],
       ],
     };
   }
-  // Final states have no buttons
+
   return { inline_keyboard: [] };
 }
 
 function appendOrReplaceStatus(originalText: string, statusLine: string): string {
-  // Strip any prior "Status:" line we appended so repeated clicks don't stack
   const cleaned = originalText
     .split("\n")
-    .filter((l) => !l.startsWith("📌 Status:"))
+    .filter((line) => !line.startsWith("Status:"))
     .join("\n")
     .replace(/\n+$/g, "");
-  return `${cleaned}\n\n📌 Status: <b>${statusLine}</b>`;
+
+  return `${cleaned}\n\nStatus: <b>${statusLine}</b>`;
 }
 
 async function tg(method: string, payload: unknown, lovableKey: string, tgKey: string) {
-  const res = await fetch(`${GATEWAY_URL}/${method}`, {
+  const response = await fetch(`${GATEWAY_URL}/${method}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${lovableKey}`,
@@ -59,10 +59,12 @@ async function tg(method: string, payload: unknown, lovableKey: string, tgKey: s
     },
     body: JSON.stringify(payload),
   });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    console.error(`Telegram ${method} failed`, res.status, body);
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    console.error(`Telegram ${method} failed`, response.status, body);
   }
+
   return body;
 }
 
@@ -78,19 +80,19 @@ export const Route = createFileRoute("/api/public/telegram-poll")({
 async function handler() {
   const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
   const TELEGRAM_API_KEY = process.env.TELEGRAM_API_KEY;
+
   if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY) {
-    return new Response(
-      JSON.stringify({ error: "Telegram not configured" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Telegram not configured" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  // Drain all pending callback queries
   let processed = 0;
-  let offset: number | undefined = undefined;
-  // Loop a few times in case there are >100 pending updates
+  let offset: number | undefined;
+
   for (let i = 0; i < 5; i++) {
-    const res: { ok: boolean; result?: Update[] } = await tg(
+    const response: { ok: boolean; result?: Update[] } = await tg(
       "getUpdates",
       {
         offset,
@@ -99,56 +101,56 @@ async function handler() {
         allowed_updates: ["callback_query"],
       },
       LOVABLE_API_KEY,
-      TELEGRAM_API_KEY
+      TELEGRAM_API_KEY,
     );
 
-    const updates = res.result ?? [];
+    const updates = response.result ?? [];
     if (updates.length === 0) break;
 
-    for (const u of updates) {
-      const cb = u.callback_query;
-      if (!cb || !cb.data || !cb.message) continue;
-      const [, status] = cb.data.split(":");
+    for (const update of updates) {
+      const callback = update.callback_query;
+      if (!callback || !callback.data || !callback.message) continue;
+
+      const [, status] = callback.data.split(":");
       if (!status || !STATUS_LABELS[status]) {
         await tg(
           "answerCallbackQuery",
-          { callback_query_id: cb.id },
+          { callback_query_id: callback.id },
           LOVABLE_API_KEY,
-          TELEGRAM_API_KEY
+          TELEGRAM_API_KEY,
         );
         continue;
       }
 
-      const newText = appendOrReplaceStatus(cb.message.text ?? "", STATUS_LABELS[status]);
+      const newText = appendOrReplaceStatus(callback.message.text ?? "", STATUS_LABELS[status]);
       const markup = buildMarkup(status);
 
       await tg(
         "editMessageText",
         {
-          chat_id: cb.message.chat.id,
-          message_id: cb.message.message_id,
+          chat_id: callback.message.chat.id,
+          message_id: callback.message.message_id,
           text: newText,
           parse_mode: "HTML",
           reply_markup: markup,
         },
         LOVABLE_API_KEY,
-        TELEGRAM_API_KEY
+        TELEGRAM_API_KEY,
       );
 
       await tg(
         "answerCallbackQuery",
         {
-          callback_query_id: cb.id,
+          callback_query_id: callback.id,
           text: `Marked as ${STATUS_LABELS[status]}`,
         },
         LOVABLE_API_KEY,
-        TELEGRAM_API_KEY
+        TELEGRAM_API_KEY,
       );
 
       processed++;
     }
 
-    // Advance offset to ack these updates
     offset = updates[updates.length - 1].update_id + 1;
     if (updates.length < 100) break;
   }

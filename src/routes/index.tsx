@@ -1,28 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Toaster } from "@/components/ui/sonner";
+import { Clock, Snowflake, ShieldCheck, Truck, Star, Phone } from "lucide-react";
 import { OrderForm } from "@/components/OrderForm";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/sonner";
 import heroMilk from "@/assets/hero-milk.jpg";
 import logo from "@/assets/logo.png";
-import {
-  Clock,
-  Snowflake,
-  ShieldCheck,
-  Truck,
-  Star,
-  Phone,
-} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FreshMilk — Premium Milk Delivery in Addis Ababa" },
+      { title: "FreshMilk - Premium Milk Delivery in Addis Ababa" },
       {
         name: "description",
         content:
           "Order farm-fresh milk delivered to your door in Addis Ababa. Just 100 Birr per liter. Fast, reliable, no account needed.",
       },
-      { property: "og:title", content: "FreshMilk — Premium Milk Delivery" },
+      { property: "og:title", content: "FreshMilk - Premium Milk Delivery" },
       {
         property: "og:description",
         content: "Farm-fresh milk delivered fast. 100 Birr per liter. Order now.",
@@ -37,15 +30,10 @@ function Index() {
     <div className="min-h-screen">
       <Toaster position="top-center" richColors />
 
-      {/* Nav */}
-      <header className="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-background/70 border-b">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <a href="#top" className="flex items-center gap-2 font-bold text-lg">
-            <img
-              src={logo}
-              alt="FreshMilk logo"
-              className="h-9 w-9 object-contain"
-            />
+      <header className="fixed inset-x-0 top-0 z-40 border-b bg-background/70 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <a href="#top" className="flex items-center gap-2 text-lg font-bold">
+            <img src={logo} alt="FreshMilk logo" className="h-9 w-9 object-contain" />
             FreshMilk
           </a>
           <a href="#order">
@@ -56,19 +44,18 @@ function Index() {
         </div>
       </header>
 
-      {/* Hero */}
       <section
         id="top"
-        className="relative pt-28 pb-16 sm:pt-32 sm:pb-20 overflow-hidden"
+        className="relative overflow-hidden pb-16 pt-28 sm:pb-20 sm:pt-32"
         style={{ background: "var(--gradient-hero)" }}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 grid gap-10 md:grid-cols-2 md:items-center">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 md:grid-cols-2 md:items-center">
           <div className="animate-fade-up">
-            <div className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground mb-5">
-              <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-success" />
               Same-day delivery in Addis Ababa
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.05] tracking-tight">
+            <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
               Farm-fresh milk,
               <br />
               <span
@@ -78,9 +65,9 @@ function Index() {
                 delivered to your door.
               </span>
             </h1>
-            <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-lg leading-relaxed">
-              Pure, chilled milk straight from our local farms. Just 100 Birr per liter —
-              order in seconds, no account required.
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
+              Pure, chilled milk straight from our local farms. Just 100 Birr per liter - order in
+              seconds, no account required.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <a href="#order">
@@ -101,9 +88,9 @@ function Index() {
             <div className="mt-8 flex items-center gap-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[1, 2, 3, 4].map((value) => (
                     <div
-                      key={i}
+                      key={value}
                       className="h-7 w-7 rounded-full border-2 border-background bg-gradient-to-br from-primary to-primary-glow"
                     />
                   ))}
@@ -118,41 +105,40 @@ function Index() {
               className="absolute -inset-8 rounded-full blur-3xl opacity-40"
               style={{ background: "var(--gradient-primary)" }}
             />
-            <div className="relative rounded-3xl overflow-hidden shadow-[var(--shadow-elegant)] animate-float">
+            <div className="relative overflow-hidden rounded-3xl shadow-[var(--shadow-elegant)] animate-float">
               <img
                 src={heroMilk}
                 alt="Fresh bottle of milk"
                 width={1280}
                 height={1280}
-                className="w-full h-auto object-cover"
+                className="h-auto w-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-4 -left-4 bg-card rounded-2xl p-4 shadow-[var(--shadow-soft)] border flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center">
+            <div className="absolute -bottom-4 -left-4 flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-[var(--shadow-soft)]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/10">
                 <Truck className="h-5 w-5 text-success" />
               </div>
               <div>
                 <div className="text-xs text-muted-foreground">Average delivery</div>
-                <div className="font-bold text-sm">Under 60 minutes</div>
+                <div className="text-sm font-bold">Under 60 minutes</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* About */}
       <section id="about" className="py-20 sm:py-24">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="max-w-2xl mx-auto text-center mb-14">
-            <span className="text-xs font-semibold tracking-widest uppercase text-primary">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <span className="text-xs font-semibold uppercase tracking-widest text-primary">
               Why FreshMilk
             </span>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-bold">
+            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">
               The fastest way to get fresh milk
             </h2>
             <p className="mt-4 text-muted-foreground">
-              We partner with local dairy farms to deliver chilled, pure milk to your home —
-              fast, reliable, and at a fair price.
+              We partner with local dairy farms to deliver chilled, pure milk to your home - fast,
+              reliable, and at a fair price.
             </p>
           </div>
 
@@ -166,40 +152,39 @@ function Index() {
               {
                 icon: Clock,
                 title: "Lightning Fast",
-                desc: "Same-day delivery across Addis Ababa — average arrival in under one hour.",
+                desc: "Same-day delivery across Addis Ababa - average arrival in under one hour.",
               },
               {
                 icon: ShieldCheck,
                 title: "Fair Pricing",
-                desc: "Just 100 Birr per liter. No hidden fees. Pay on delivery — cash or mobile.",
+                desc: "Just 100 Birr per liter. No hidden fees. Pay on delivery - cash or mobile.",
               },
-            ].map((f) => (
+            ].map((feature) => (
               <div
-                key={f.title}
-                className="rounded-2xl border p-7 bg-card hover:shadow-[var(--shadow-soft)] transition-all"
+                key={feature.title}
+                className="rounded-2xl border bg-card p-7 transition-all hover:shadow-[var(--shadow-soft)]"
               >
                 <div
-                  className="h-12 w-12 rounded-xl flex items-center justify-center text-primary-foreground mb-5"
+                  className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl text-primary-foreground"
                   style={{ background: "var(--gradient-primary)" }}
                 >
-                  <f.icon className="h-6 w-6" />
+                  <feature.icon className="h-6 w-6" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                <h3 className="mb-2 text-lg font-bold">{feature.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">{feature.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-20 sm:py-24 bg-secondary/40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="max-w-2xl mx-auto text-center mb-14">
-            <span className="text-xs font-semibold tracking-widest uppercase text-primary">
+      <section className="bg-secondary/40 py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <span className="text-xs font-semibold uppercase tracking-widest text-primary">
               Testimonials
             </span>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-bold">Loved across the city</h2>
+            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Loved across the city</h2>
           </div>
 
           <div className="grid gap-5 md:grid-cols-3">
@@ -217,32 +202,29 @@ function Index() {
               {
                 name: "Hanna G.",
                 area: "CMC",
-                text: "So easy to order — no app, no account. Just enter your details and they call you back.",
+                text: "So easy to order - no app, no account. Just enter your details and they call you back.",
               },
-            ].map((t) => (
+            ].map((testimonial) => (
               <div
-                key={t.name}
-                className="rounded-2xl bg-card border p-7 shadow-[var(--shadow-soft)]"
+                key={testimonial.name}
+                className="rounded-2xl border bg-card p-7 shadow-[var(--shadow-soft)]"
               >
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 fill-primary text-primary"
-                    />
+                <div className="mb-4 flex gap-1">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <Star key={index} className="h-4 w-4 fill-primary text-primary" />
                   ))}
                 </div>
-                <p className="text-sm leading-relaxed text-foreground/90">"{t.text}"</p>
-                <div className="mt-5 pt-5 border-t flex items-center gap-3">
+                <p className="text-sm leading-relaxed text-foreground/90">"{testimonial.text}"</p>
+                <div className="mt-5 flex items-center gap-3 border-t pt-5">
                   <div
-                    className="h-10 w-10 rounded-full flex items-center justify-center text-primary-foreground font-semibold"
+                    className="flex h-10 w-10 items-center justify-center rounded-full font-semibold text-primary-foreground"
                     style={{ background: "var(--gradient-primary)" }}
                   >
-                    {t.name[0]}
+                    {testimonial.name[0]}
                   </div>
                   <div>
-                    <div className="font-semibold text-sm">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.area}</div>
+                    <div className="text-sm font-semibold">{testimonial.name}</div>
+                    <div className="text-xs text-muted-foreground">{testimonial.area}</div>
                   </div>
                 </div>
               </div>
@@ -251,45 +233,34 @@ function Index() {
         </div>
       </section>
 
-      {/* Order */}
-      <section id="order" className="py-20 sm:py-28 relative overflow-hidden">
-        <div
-          className="absolute inset-0 -z-10"
-          style={{ background: "var(--gradient-hero)" }}
-        />
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
-            <span className="text-xs font-semibold tracking-widest uppercase text-primary">
+      <section id="order" className="relative overflow-hidden py-20 sm:py-28">
+        <div className="absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <div className="mb-10 text-center">
+            <span className="text-xs font-semibold uppercase tracking-widest text-primary">
               Place your order
             </span>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-bold">
-              Order in under 30 seconds
-            </h2>
+            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Order in under 30 seconds</h2>
             <p className="mt-3 text-muted-foreground">
-              Fill in your details — we'll call you to confirm and deliver.
+              Fill in your details - we'll call you to confirm and deliver.
             </p>
           </div>
           <OrderForm />
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t py-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
           <div className="flex items-center gap-2 font-bold">
-            <img
-              src={logo}
-              alt="FreshMilk logo"
-              className="h-8 w-8 object-contain"
-            />
+            <img src={logo} alt="FreshMilk logo" className="h-8 w-8 object-contain" />
             FreshMilk
           </div>
-          <div className="text-sm text-muted-foreground flex items-center gap-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Phone className="h-4 w-4" />
             Call to order: +251 9XX XXX XXX
           </div>
           <div className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} FreshMilk. All rights reserved.
+            (c) {new Date().getFullYear()} FreshMilk. All rights reserved.
           </div>
         </div>
       </footer>

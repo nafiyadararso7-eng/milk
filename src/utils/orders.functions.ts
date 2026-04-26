@@ -10,6 +10,21 @@ const orderSchema = z.object({
   locationType: z.enum(["gps", "manual"]),
 });
 
+type TelegramCallbackQuery = {
+  id: string;
+  data?: string;
+  message?: {
+    message_id: number;
+    chat: { id: number | string };
+    text?: string;
+  };
+};
+
+type TelegramUpdate = {
+  update_id: number;
+  callback_query?: TelegramCallbackQuery;
+};
+
 export const submitOrder = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => orderSchema.parse(input))
   .handler(async ({ data }) => {
@@ -22,15 +37,15 @@ export const submitOrder = createServerFn({ method: "POST" })
     if (!TELEGRAM_CHAT_ID) throw new Error("TELEGRAM_CHAT_ID not configured");
 
     const text =
-      `🥛 <b>MILK ORDER</b>\n\n` +
-      `👤 <b>Name:</b> ${escapeHtml(data.name)}\n` +
-      `📞 <b>Phone:</b> ${escapeHtml(data.phone)}\n` +
-      `📦 <b>Quantity:</b> ${data.quantity} L\n` +
-      `💰 <b>Total Price:</b> ${data.price} Birr\n` +
-      `📍 <b>Location:</b> ${escapeHtml(data.location)} ${data.locationType === "gps" ? "(GPS)" : ""}\n\n` +
-      `🚨 <i>New order received – please contact customer immediately</i>`;
+      `<b>MILK ORDER</b>\n\n` +
+      `<b>Name:</b> ${escapeHtml(data.name)}\n` +
+      `<b>Phone:</b> ${escapeHtml(data.phone)}\n` +
+      `<b>Quantity:</b> ${data.quantity} L\n` +
+      `<b>Total Price:</b> ${data.price} Birr\n` +
+      `<b>Location:</b> ${escapeHtml(data.location)} ${data.locationType === "gps" ? "(GPS)" : ""}\n\n` +
+      `<i>New order received - please contact customer immediately</i>`;
 
-    const res = await fetch("https://connector-gateway.lovable.dev/telegram/sendMessage", {
+    const response = await fetch("https://connector-gateway.lovable.dev/telegram/sendMessage", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -44,51 +59,50 @@ export const submitOrder = createServerFn({ method: "POST" })
         reply_markup: {
           inline_keyboard: [
             [
-              { text: "🕒 Mark as Pending", callback_data: "status:pending" },
-              { text: "✅ Mark as Sold", callback_data: "status:sold" },
+              { text: "Mark as Pending", callback_data: "status:pending" },
+              { text: "Mark as Sold", callback_data: "status:sold" },
             ],
-            [{ text: "❌ Mark as Canceled", callback_data: "status:canceled" }],
+            [{ text: "Mark as Canceled", callback_data: "status:canceled" }],
           ],
         },
       }),
     });
 
-    const body = await res.json();
-    if (!res.ok || !body.ok) {
-      console.error("Telegram send failed:", res.status, body);
-      throw new Error(`Failed to send order (${res.status})`);
+    const body = await response.json();
+    if (!response.ok || !body.ok) {
+      console.error("Telegram send failed:", response.status, body);
+      throw new Error(`Failed to send order (${response.status})`);
     }
 
-    // Best-effort: drain any pending status-button clicks so older order
-    // messages get their status updated without needing a separate cron.
-    drainCallbacksInBackground(LOVABLE_API_KEY, TELEGRAM_API_KEY).catch((e) =>
-      console.error("drainCallbacks error", e)
+    drainCallbacksInBackground(LOVABLE_API_KEY, TELEGRAM_API_KEY).catch((error) =>
+      console.error("drainCallbacks error", error),
     );
 
     return { success: true };
   });
 
 async function drainCallbacksInBackground(lovableKey: string, tgKey: string) {
-  const GATEWAY = "https://connector-gateway.lovable.dev/telegram";
-  const STATUS: Record<string, string> = {
-    pending: "🕒 PENDING",
-    sold: "✅ SOLD",
-    canceled: "❌ CANCELED",
+  const gateway = "https://connector-gateway.lovable.dev/telegram";
+  const statusLabels: Record<string, string> = {
+    pending: "PENDING",
+    sold: "SOLD",
+    canceled: "CANCELED",
   };
+
   const buildMarkup = (status: string) =>
     status === "pending"
       ? {
           inline_keyboard: [
             [
-              { text: "✅ Mark as Sold", callback_data: "status:sold" },
-              { text: "❌ Mark as Canceled", callback_data: "status:canceled" },
+              { text: "Mark as Sold", callback_data: "status:sold" },
+              { text: "Mark as Canceled", callback_data: "status:canceled" },
             ],
           ],
         }
       : { inline_keyboard: [] };
 
   const tg = async (method: string, payload: unknown) => {
-    const r = await fetch(`${GATEWAY}/${method}`, {
+    const response = await fetch(`${gateway}/${method}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${lovableKey}`,
@@ -97,44 +111,49 @@ async function drainCallbacksInBackground(lovableKey: string, tgKey: string) {
       },
       body: JSON.stringify(payload),
     });
-    return r.json().catch(() => ({}));
+
+    return response.json().catch(() => ({}));
   };
 
   let offset: number | undefined;
+
   for (let i = 0; i < 3; i++) {
-    const res: { result?: Array<{ update_id: number; callback_query?: any }> } =
-      await tg("getUpdates", {
-        offset,
-        timeout: 0,
-        limit: 100,
-        allowed_updates: ["callback_query"],
-      });
-    const updates = res.result ?? [];
+    const response: { result?: TelegramUpdate[] } = await tg("getUpdates", {
+      offset,
+      timeout: 0,
+      limit: 100,
+      allowed_updates: ["callback_query"],
+    });
+    const updates = response.result ?? [];
+
     if (updates.length === 0) break;
 
-    for (const u of updates) {
-      const cb = u.callback_query;
-      if (!cb?.data || !cb.message) continue;
-      const [, status] = String(cb.data).split(":");
-      if (status && STATUS[status]) {
-        const orig: string = cb.message.text ?? "";
-        const cleaned = orig
+    for (const update of updates) {
+      const callback = update.callback_query;
+      if (!callback?.data || !callback.message) continue;
+
+      const [, status] = String(callback.data).split(":");
+      if (status && statusLabels[status]) {
+        const originalText = callback.message.text ?? "";
+        const cleanedText = originalText
           .split("\n")
-          .filter((l: string) => !l.startsWith("📌 Status:"))
+          .filter((line: string) => !line.startsWith("Status:"))
           .join("\n")
           .replace(/\n+$/g, "");
-        const newText = `${cleaned}\n\n📌 Status: <b>${STATUS[status]}</b>`;
+        const newText = `${cleanedText}\n\nStatus: <b>${statusLabels[status]}</b>`;
+
         await tg("editMessageText", {
-          chat_id: cb.message.chat.id,
-          message_id: cb.message.message_id,
+          chat_id: callback.message.chat.id,
+          message_id: callback.message.message_id,
           text: newText,
           parse_mode: "HTML",
           reply_markup: buildMarkup(status),
         });
       }
+
       await tg("answerCallbackQuery", {
-        callback_query_id: cb.id,
-        text: status && STATUS[status] ? `Marked as ${STATUS[status]}` : "",
+        callback_query_id: callback.id,
+        text: status && statusLabels[status] ? `Marked as ${statusLabels[status]}` : "",
       });
     }
 
@@ -143,6 +162,6 @@ async function drainCallbacksInBackground(lovableKey: string, tgKey: string) {
   }
 }
 
-function escapeHtml(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function escapeHtml(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
